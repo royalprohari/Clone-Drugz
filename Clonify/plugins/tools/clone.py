@@ -56,11 +56,12 @@ async def clone_txt(client, message, _):
 
     try:
         ai = Client(
-            name=":memory:",  # 👈 No session file
+            session_name=":memory_clone:",  # Memory-only session
             api_id=API_ID,
             api_hash=API_HASH,
             bot_token=bot_token,
             plugins=dict(root="Clonify.cplugin"),
+            workdir="/dev/shm",  # RAM-only storage
         )
         await ai.start()
         bot = await ai.get_me()
@@ -173,28 +174,37 @@ async def restart_bots():
     try:
         logging.info("Restarting all cloned bots...")
         bots = list(clonebotdb.find())
+
         for idx, bot in enumerate(bots, start=1):
             bot_token = bot["token"]
+
+            # Verify bot token
             if requests.get(f"https://api.telegram.org/bot{bot_token}/getMe").status_code != 200:
                 clonebotdb.delete_one({"token": bot_token})
                 continue
 
             ai = Client(
-                name=":memory:",  # 👈 Memory-only session
+                session_name=f":memory:{idx}",  # unique in-memory session
                 api_id=API_ID,
                 api_hash=API_HASH,
                 bot_token=bot_token,
                 plugins=dict(root="Clonify.cplugin"),
+                workdir="/dev/shm",  # RAM-only directory
             )
-            await ai.start()
-            bot_data = await ai.get_me()
-            CLONES.add(bot_data.id)
-            print(f"Started bot #{idx} -> {bot_data.username}")
-            await asyncio.sleep(5)
 
-        await app.send_message(CLONE_LOGGER, "✅ All cloned bots started!")
+            try:
+                await ai.start()
+                bot_data = await ai.get_me()
+                CLONES.add(bot_data.id)
+                print(f"✅ Started bot #{idx} -> @{bot_data.username}")
+                await asyncio.sleep(3)
+            except Exception as e:
+                logging.exception(f"Error starting bot #{idx}: {e}")
+                continue
+
+        await app.send_message(CLONE_LOGGER, "✅ All cloned bots started successfully!")
     except Exception as e:
-        logging.exception("Error while restarting bots.")
+        logging.exception(f"Error while restarting bots: {e}")
 
 
 @app.on_message(filters.command("delallclone") & filters.user(OWNER_ID))
