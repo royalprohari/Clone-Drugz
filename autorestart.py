@@ -3,9 +3,10 @@ import time
 import datetime
 import os
 import sys
+import glob
 
 # Path to your bot's main file
-BOT_MAIN_FILE = ["bash", "start"]
+BOT_MAIN_FILE = "__main__.py"
 REQUIREMENTS_FILE = "requirements.txt"
 RESTART_DELAY = 60  # seconds between restarts
 
@@ -22,8 +23,24 @@ def log(message: str):
         f.write(msg + "\n")
 
 
+def remove_session_files():
+    """Delete all .session files in the current directory."""
+    session_files = glob.glob("*.session")
+    if session_files:
+        for file in session_files:
+            try:
+                os.remove(file)
+                log(f"🗑️ Removed session file: {file}")
+            except Exception as e:
+                log(f"❌ Failed to remove {file}: {e}")
+    else:
+        log("⚠️ No .session files found — nothing to remove.")
+
+
 def install_requirements():
     """Install dependencies from requirements.txt if it exists."""
+    remove_session_files()  # Remove session files before installing requirements
+
     if os.path.exists(REQUIREMENTS_FILE):
         log("Installing dependencies from requirements.txt...")
         try:
@@ -55,4 +72,3 @@ def autorestart():
         log(f"🔁 Restarting in {RESTART_DELAY} seconds...")
         time.sleep(RESTART_DELAY)
         install_requirements()  # Install before next restart
-
