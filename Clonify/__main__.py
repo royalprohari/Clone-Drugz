@@ -13,6 +13,8 @@ from Clonify.utils.database import get_banned_users, get_gbanned
 from config import BANNED_USERS
 from Clonify.plugins.tools.clone import restart_bots
 
+from autorestart import autorestart #autorestart
+
 
 async def init():
     if not config.STRING1:
