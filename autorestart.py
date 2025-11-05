@@ -24,17 +24,21 @@ def log(message: str):
 
 
 def remove_session_files():
-    """Delete all .session files in the current directory."""
-    session_files = glob.glob("*.session")
-    if session_files:
-        for file in session_files:
-            try:
-                os.remove(file)
-                log(f"🗑️ Removed session file: {file}")
-            except Exception as e:
-                log(f"❌ Failed to remove {file}: {e}")
-    else:
-        log("⚠️ No .session files found — nothing to remove.")
+    """Delete all .session and .session-journal files in the current directory."""
+    patterns = ["*.session", "*.session-journal"]
+    removed_any = False
+    for pattern in patterns:
+        files = glob.glob(pattern)
+        if files:
+            removed_any = True
+            for file in files:
+                try:
+                    os.remove(file)
+                    log(f"🗑️ Removed file: {file}")
+                except Exception as e:
+                    log(f"❌ Failed to remove {file}: {e}")
+    if not removed_any:
+        log("⚠️ No .session or .session-journal files found — nothing to remove.")
 
 
 def install_requirements():
