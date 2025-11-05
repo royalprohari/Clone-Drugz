@@ -78,10 +78,10 @@ if __name__ == "__main__":
         asyncio.get_event_loop().run_until_complete(init())
 
         # AutoRestart section (using logging instead of undefined log())
-        logging.info("AutoRestart system started.")
+        logging.info("🟢 AutoRestart system started.")
         autorestart()
 
     except KeyboardInterrupt:
-        logging.warning("AutoRestart system stopped manually.")
+        logging.warning("🛑 AutoRestart system stopped manually.")
     except Exception as e:
-        logging.exception(f"Unexpected error: {e}")
+        logging.exception(f"❌ Unexpected error: {e}")
